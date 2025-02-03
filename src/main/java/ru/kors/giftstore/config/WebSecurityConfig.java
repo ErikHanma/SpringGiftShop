@@ -9,44 +9,41 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import ru.kors.giftstore.service.userdetails.CustomUserDetailsService;
 
 import java.util.List;
 
-import static com.aptproject.SpringLibraryProject.library.constants.SecurityConstants.*;
-import static com.aptproject.SpringLibraryProject.library.constants.UserRolesConstants.ADMIN;
-import static com.aptproject.SpringLibraryProject.library.constants.UserRolesConstants.LIBRARIAN;
-
+import static ru.kors.giftstore.constants.SecurityConstants.*;
+import static ru.kors.giftstore.constants.UserRolesConstants.ADMIN;
+import static ru.kors.giftstore.constants.UserRolesConstants.CUSTOMER; // Добавлено для роли покупателя
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;   // После CustomUserDetails
-    private final CustomUserDetailsService customUserDetailsService; // После CustomUserDetails
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final CustomUserDetailsService customUserDetailsService;
 
     public WebSecurityConfig(BCryptPasswordEncoder bCryptPasswordEncoder, CustomUserDetailsService customUserDetailsService) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.customUserDetailsService = customUserDetailsService;
-    } // После CustomUserDetails
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception { // является builder'ом
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .cors().disable() // Cross-Origin Resource Sharing - Это механизм браузера, который позволяет определить
-                // список ресурсов, к которым страница может получить доступ.
-                .csrf().disable() // Cross-Site Request Forgery
-                //Настройка http-запросов - кому/куда можно/нельзя
+                .cors().disable()
+                .csrf().disable()
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(RESOURCES_WHITE_LIST.toArray(String[]::new)).permitAll()
-                        .requestMatchers(BOOKS_WHITE_LIST.toArray(String[]::new)).permitAll()
+                        .requestMatchers(PRODUCTS_WHITE_LIST.toArray(String[]::new)).permitAll() // Изменено на PRODUCTS_WHITE_LIST
                         .requestMatchers(USERS_WHITE_LIST.toArray(String[]::new)).permitAll()
-                        .requestMatchers(BOOKS_PERMISSION_LIST.toArray(String[]::new)).hasAnyRole(ADMIN, LIBRARIAN)
-                        .anyRequest().authenticated() // Все прочие запросы доступны аутентифицированным пользователям
+                        .requestMatchers(ADMIN_PERMISSION_LIST.toArray(String[]::new)).hasRole(ADMIN) // Изменено на ADMIN_PERMISSION_LIST
+                        .requestMatchers(CUSTOMER_PERMISSION_LIST.toArray(String[]::new)).hasRole(CUSTOMER) // Добавлено для покупателей
+                        .anyRequest().authenticated()
                 )
-                //Настройка для входа в систему
                 .formLogin((form) -> form
                         .loginPage("/login")
-                        //Перенаправляем на главную страницу после успеха
                         .defaultSuccessUrl("/")
                         .permitAll()
                 )
@@ -67,4 +64,3 @@ public class WebSecurityConfig {
         auth.userDetailsService(customUserDetailsService).passwordEncoder(bCryptPasswordEncoder);
     }
 }
-//list

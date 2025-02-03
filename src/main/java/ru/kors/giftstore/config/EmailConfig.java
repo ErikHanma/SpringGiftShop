@@ -1,6 +1,5 @@
 package ru.kors.giftstore.config;
 
-package com.aptproject.SpringLibraryProject.library.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

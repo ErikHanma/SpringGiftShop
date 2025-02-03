@@ -1,4 +1,4 @@
 package ru.kors.giftstore.model;
 
-public class Product {
+public class Product extends GenericModel {
 }
