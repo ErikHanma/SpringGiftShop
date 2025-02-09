@@ -3,27 +3,40 @@ package ru.kors.giftstore.constants;
 import java.util.List;
 
 public interface SecurityConstants {
-
-    List<String> RESOURCES_WHITE_LIST = List.of("/resources/**",
+    List<String> RESOURCES_WHITE_LIST = List.of(
+            "/resources/**",
             "/static/**",
             "/js/**",
             "/css/**",
             "/",
             "/swagger-ui/**",
-            "/v3/api-docs/**");
+            "/v3/api-docs/**",
+            "/api/v1/auth/register",
+            "/api/v1/auth/login"
+    );
 
-    List<String> BOOKS_WHITE_LIST = List.of(
-            "/books/search",
-            "/books/{id}",
-            "/books");
-    List<String> BOOKS_PERMISSION_LIST = List.of("/books/add",
-            "/books/update",
-            "/books/delete");
+    List<String> PRODUCTS_WHITE_LIST = List.of(
+            "/api/v1/products",
+            "/api/v1/products/{id}",
+            "/api/v1/products/search"
+    );
 
-    List<String> USERS_WHITE_LIST = List.of("/login",
-            "/users/registration",
-            "/users/remember-password",
-            "/users/change-password");
+    List<String> USERS_WHITE_LIST = List.of(
+            "/api/v1/auth/login",
+            "/api/v1/users/registration",
+            "/api/v1/users/remember-password",
+            "/api/v1/users/change-password"
+    );
 
-    List<String> USERS_REST_WHITE_LIST = List.of("/users/auth");
+    List<String> ADMIN_PERMISSION_LIST = List.of(
+            "/api/v1/products/**",
+            "/api/v1/admin/**",
+            "/api/v1/categories/**",
+            "/api/v1/orders/**"
+    );
+
+    List<String> CUSTOMER_PERMISSION_LIST = List.of(
+            "/api/v1/cart/**",
+            "/api/v1/orders/my-orders"
+    );
 }

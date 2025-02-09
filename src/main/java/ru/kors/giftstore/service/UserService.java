@@ -1,89 +1,54 @@
 package ru.kors.giftstore.service;
 
-import com.aptproject.SpringLibraryProject.library.constants.MailConstants;
-import com.aptproject.SpringLibraryProject.library.dto.RoleDTO;
-import com.aptproject.SpringLibraryProject.library.dto.UserDTO;
-import com.aptproject.SpringLibraryProject.library.mapper.GenericMapper;
-import com.aptproject.SpringLibraryProject.library.model.User;
-import com.aptproject.SpringLibraryProject.library.repository.GenericRepository;
-import com.aptproject.SpringLibraryProject.library.repository.UserRepository;
-import com.aptproject.SpringLibraryProject.utils.MailUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.kors.giftstore.dto.UserDTO;
+import ru.kors.giftstore.mapper.GenericMapper;
+import ru.kors.giftstore.model.Role;
+import ru.kors.giftstore.model.User;
+import ru.kors.giftstore.repository.GenericRepository;
+import ru.kors.giftstore.repository.RoleRepository;
+import ru.kors.giftstore.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
-@Slf4j
 @Service
-public class UserService
-        extends GenericService<User, UserDTO> {
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final JavaMailSender javaMailSender;
+public class UserService extends GenericService<User, UserDTO> {
 
-    public UserService(GenericRepository<User> repository,
-                       GenericMapper<User, UserDTO> mapper,
-                       BCryptPasswordEncoder bCryptPasswordEncoder, JavaMailSender javaMailSender) {
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+
+    public UserService(GenericRepository<User> repository, GenericMapper<User, UserDTO> mapper, BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository, RoleRepository roleRepository) {
         super(repository, mapper);
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.javaMailSender = javaMailSender;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public UserDTO create(UserDTO newObject) {
-        RoleDTO roleDTO = new RoleDTO();
-        roleDTO.setId(1L);
-        newObject.setRole(roleDTO);
-        newObject.setPassword(bCryptPasswordEncoder.encode(newObject.getPassword()));
-        newObject.setCreatedBy("REGISTRATION FORM");
-        newObject.setCreatedWhen(LocalDateTime.now());
-        return mapper.toDTO(repository.save(mapper.toEntity(newObject)));
+        User user = mapper.toEntity(newObject);
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        user.setCreatedBy("REGISTRATION FORM");
+        user.setCreatedWhen(LocalDateTime.now());
+
+        // Set default role (e.g., "USER")
+        Role defaultRole = roleRepository.findByTitle("USER").orElseGet(() -> {
+            Role newRole = new Role();
+            newRole.setTitle("USER");
+            return roleRepository.save(newRole);
+        });
+        user.setRole(defaultRole);
+
+        return mapper.toDTO(repository.save(user));
     }
 
     public UserDTO getUserByLogin(final String login) {
-        return mapper.toDTO(((UserRepository) repository).findUserByLogin(login));
+        return mapper.toDTO(userRepository.findUserByLogin(login));
     }
 
     public UserDTO getUserByEmail(final String email) {
-        return mapper.toDTO(((UserRepository) repository).findUserByEmail(email));
+        return mapper.toDTO(userRepository.findByEmail(email).orElse(null));
     }
-
-    public boolean checkPassword(String password, UserDetails foundUser) {
-        return bCryptPasswordEncoder.matches(password, foundUser.getPassword());
-    }
-
-    public void sendChangePasswordEmail(final UserDTO userDTO) {
-        UUID uuid = UUID.randomUUID(); // генерация токена
-        log.info("Токен: {}", uuid);
-        userDTO.setChangePasswordToken(String.valueOf(uuid));
-        update(userDTO);
-
-        SimpleMailMessage mailMessage = MailUtils.createMailMessage(
-                userDTO.getEmail(),
-                "spring_proj_try@mail.ru",
-
-                MailConstants.MAIL_SUBJECT_FOR_REMEMBER_PASSWORD,
-                MailConstants.MAIL_MESSAGE_FOR_REMEMBER_PASSWORD + uuid
-        );
-
-        javaMailSender.send(mailMessage);
-
-    }
-
-    public void changePassword(String uuid, String password) {
-        UserDTO userDTO = mapper.toDTO(((UserRepository) repository).findUserByChangePasswordToken(uuid));
-        userDTO.setChangePasswordToken(null);
-        userDTO.setPassword(bCryptPasswordEncoder.encode(password));
-        update(userDTO);
-    };
-
-    public List<String> getUserEmailWithDelayedRentDate() {
-        return ((UserRepository) repository).getDelayedEmails();
-    }
-
 }

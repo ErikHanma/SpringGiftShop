@@ -1,6 +1,5 @@
 package ru.kors.giftstore.config.jwt;
 
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,8 +16,7 @@ import ru.kors.giftstore.service.userdetails.CustomUserDetailsService;
 import java.io.IOException;
 
 @Component
-public class JWTTokenFilter
-        extends OncePerRequestFilter {
+public class JWTTokenFilter extends OncePerRequestFilter {
 
     private final JWTTokenUtil jwtTokenUtil;
     private final CustomUserDetailsService customUserDetailsService;

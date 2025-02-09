@@ -29,7 +29,6 @@ public abstract class GenericService<E extends GenericModel, D extends GenericDT
     protected final GenericRepository<E> repository;
     protected final GenericMapper<E, D> mapper;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     public GenericService(GenericRepository<E> repository, GenericMapper<E, D> mapper) {
         this.repository = repository;
         this.mapper = mapper;

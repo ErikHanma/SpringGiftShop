@@ -1,31 +1,22 @@
 package ru.kors.giftstore.service.userdetails;
 
-import com.aptproject.SpringLibraryProject.library.constants.UserRolesConstants;
-import com.aptproject.SpringLibraryProject.library.model.User;
-import com.aptproject.SpringLibraryProject.library.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import ru.kors.giftstore.model.User;
+import ru.kors.giftstore.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.aptproject.SpringLibraryProject.library.constants.UserRolesConstants.ADMIN;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class CustomUserDetailsService
-        implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-
-    @Value("${spring.security.user.name}") // добавлена строка в application.properties
-    private String adminUserName;
-    @Value("${spring.security.user.password}") // добавлена строка в application.properties
-    private String adminPassword;
 
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -33,19 +24,17 @@ public class CustomUserDetailsService
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if (username.equals(adminUserName)) {
-            return new CustomUserDetails(null, username, adminPassword, List.of(new SimpleGrantedAuthority("ROLE_" +
-                    ADMIN)));
-        } else {
-            User user = userRepository.findUserByLogin(username); // создать метод в UserRepository
-            List<GrantedAuthority> authorities = new ArrayList<>();
+        Optional<User> userOptional = userRepository.findByLogin(username);
+        User user = userOptional.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-            //ROLE_USER, ROLE_LIBRARIAN
-            authorities.add(new SimpleGrantedAuthority(user.getRole().getId() == 1L
-                    ? "ROLE_" + UserRolesConstants.USER
-                    : "ROLE_" + UserRolesConstants.LIBRARIAN));
+        List<GrantedAuthority> authorities = user.getRole() != null
+                ? List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getTitle()))
+                : List.of();
 
-            return new CustomUserDetails(user.getId().intValue(), username, user.getPassword(), authorities);
-        }
+        return new org.springframework.security.core.userdetails.User(
+                user.getLogin(),
+                user.getPassword(),
+                authorities
+        );
     }
 }

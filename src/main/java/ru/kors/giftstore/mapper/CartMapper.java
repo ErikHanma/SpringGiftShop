@@ -1,4 +1,4 @@
 package ru.kors.giftstore.mapper;
 
-public class CartMapper {
+    public class CartMapper {
 }

@@ -1,6 +1,5 @@
 package ru.kors.giftstore.model;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 

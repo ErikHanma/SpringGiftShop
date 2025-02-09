@@ -1,6 +1,5 @@
 package ru.kors.giftstore.config;
 
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,12 +30,11 @@ public class EmailConfig {
 
         Properties properties = mailSender.getJavaMailProperties();
         properties.put("mail.smtp.auth", "true");
-        properties.put("mail.smtp.starttls.enable", "false");
+        properties.put("mail.smtp.starttls.enable", "true"); // ПЫТАЕМСЯ ИСПОЛЬЗОВАТЬ STARTTLS ПЕРВЫМ
+        properties.put("mail.smtp.ssl.enable", "false");      // НЕ ПРИНУЖДАЕМ SSL
+        //properties.put("mail.smtp.ssl.trust", "smtp.mail.ru"); //УДАЛЕНО: небезопасно!
         properties.put("mail.smtp.ssl.protocols", "TLSv1.2");
-        properties.put("mail.smtp.ssl.enable", "true");
-        properties.put("mail.smtp.ssl.trust", "smtp.mail.ru");
 
         return mailSender;
     }
-
 }
